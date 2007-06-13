@@ -18,10 +18,10 @@ JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_createIN
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    releaseINotifyInstance
- * Signature: ()I
+ * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_releaseINotifyInstance
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
