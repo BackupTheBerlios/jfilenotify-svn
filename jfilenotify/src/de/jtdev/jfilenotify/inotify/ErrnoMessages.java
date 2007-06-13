@@ -1,108 +1,113 @@
 package de.jtdev.jfilenotify.inotify;
 
+/**
+ * This class provides messages related to the errno numbers.
+ * 
+ * @author Tobias Oelgarte
+ */
 public class ErrnoMessages {
 	
 	public static final int EPERM = 1;
-	public static final String EPERM_MESSAGE = "Operation not permitted";
+	private static final String EPERM_MESSAGE = "Operation not permitted";
 	
 	public static final int ENOENT = 2;
-	public static final String ENOENT_MESSAGE = "No such file or directory";
+	private static final String ENOENT_MESSAGE = "No such file or directory";
 	
 	public static final int ESRCH = 3;
-	public static final String ESRCH_MESSAGE = "No such process";
+	private static final String ESRCH_MESSAGE = "No such process";
 
 	public static final int EINTR = 4;
-	public static final String EINTR_MESSAGE = "Interrupted system call";
+	private static final String EINTR_MESSAGE = "Interrupted system call";
 
 	public static final int EIO = 5;
-	public static final String EIO_MESSAGE = "I/O error";
+	private static final String EIO_MESSAGE = "I/O error";
 	
 	public static final int	ENXIO = 6;
-	public static final String ENXIO_MESSAGE = "No such device or address";
+	private static final String ENXIO_MESSAGE = "No such device or address";
 	
 	public static final int	E2BIG = 7;
-	public static final String E2BIG_MESSAGE = "Argument list too long";
+	private static final String E2BIG_MESSAGE = "Argument list too long";
 	
 	public static final int	ENOEXEC = 8;
-	public static final String ENOEXEC_MESSAGE = "Exec format error";
+	private static final String ENOEXEC_MESSAGE = "Exec format error";
 	
 	public static final int	EBADF = 9;
-	public static final String EBADF_MESSAGE = "Bad file number";
+	private static final String EBADF_MESSAGE = "Bad file number";
 	
 	public static final int	ECHILD = 10;
-	public static final String ECHILD_MESSAGE = "No child processes";
+	private static final String ECHILD_MESSAGE = "No child processes";
 	
 	public static final int	EAGAIN = 11;
-	public static final String EAGAIN_MESSAGE = "Try again";
+	private static final String EAGAIN_MESSAGE = "Try again";
 	
 	public static final int	ENOMEM = 12;
-	public static final String ENOMEM_MESSAGE = "Out of memory";
+	private static final String ENOMEM_MESSAGE = "Out of memory";
 	
 	public static final int	EACCES = 13;
-	public static final String EACCES_MESSAGE = "Permission denied";
+	private static final String EACCES_MESSAGE = "Permission denied";
 	
 	public static final int	EFAULT = 14;
-	public static final String EFAULT_MESSAGE = "Bad address";
+	private static final String EFAULT_MESSAGE = "Bad address";
 	
 	public static final int	ENOTBLK = 15;
-	public static final String ENOTBLK_MESSAGE = "Block device required";
+	private static final String ENOTBLK_MESSAGE = "Block device required";
 	
 	public static final int	EBUSY = 16;
-	public static final String EBUSY_MESSAGE = "Device or resource busy";
+	private static final String EBUSY_MESSAGE = "Device or resource busy";
 
 	public static final int	EEXIST = 17;
-	public static final String EEXIST_MESSAGE = "File exists";
+	private static final String EEXIST_MESSAGE = "File exists";
 
 	public static final int	EXDEV = 18;
-	public static final String EXDEV_MESSAGE = "Cross-device link";
+	private static final String EXDEV_MESSAGE = "Cross-device link";
 
 	public static final int	ENODEV = 19;
-	public static final String ENODEV_MESSAGE = "No such device";
+	private static final String ENODEV_MESSAGE = "No such device";
 
 	public static final int	ENOTDIR = 20;
-	public static final String ENOTDIR_MESSAGE = "Not a directory";
+	private static final String ENOTDIR_MESSAGE = "Not a directory";
 
 	public static final int	EISDIR = 21;
-	public static final String EISDIR_MESSAGE = "Is a directory";
+	private static final String EISDIR_MESSAGE = "Is a directory";
 
 	public static final int	EINVAL = 22;
-	public static final String EINVAL_MESSAGE = "Invalid argument";
+	private static final String EINVAL_MESSAGE = "Invalid argument";
 
 	public static final int	ENFILE = 23;
-	public static final String ENFILE_MESSAGE = "File table overflow";
+	private static final String ENFILE_MESSAGE = "File table overflow";
 
 	public static final int	EMFILE = 24;
-	public static final String EMFILE_MESSAGE = "Too many open files";
+	private static final String EMFILE_MESSAGE = "Too many open files";
 
 	public static final int	ENOTTY = 25;
-	public static final String ENOTTY_MESSAGE = "Not a typewriter";
+	private static final String ENOTTY_MESSAGE = "Not a typewriter";
 
 	public static final int	ETXTBSY = 26;
-	public static final String ETXTBSY_MESSAGE = "Text file busy";
+	private static final String ETXTBSY_MESSAGE = "Text file busy";
 
 	public static final int	EFBIG = 27;
-	public static final String EFBIG_MESSAGE = "File too large";
+	private static final String EFBIG_MESSAGE = "File too large";
 
 	public static final int	ENOSPC = 28;
-	public static final String ENOSPC_MESSAGE = "No space left on device";
+	private static final String ENOSPC_MESSAGE = "No space left on device";
 
 	public static final int	ESPIPE = 29;
-	public static final String ESPIPE_MESSAGE = "Illegal seek";
+	private static final String ESPIPE_MESSAGE = "Illegal seek";
 
 	public static final int	EROFS = 30;
-	public static final String EROFS_MESSAGE = "Read-only file system";
+	private static final String EROFS_MESSAGE = "Read-only file system";
 
 	public static final int	EMLINK = 31;
-	public static final String EMLINK_MESSAGE = "Too many links";
+	private static final String EMLINK_MESSAGE = "Too many links";
 
 	public static final int	EPIPE = 32;
-	public static final String EPIPE_MESSAGE = "Broken pipe";
+	private static final String EPIPE_MESSAGE = "Broken pipe";
 
 	public static final int	EDOM = 33;
-	public static final String EDOM_MESSAGE = "Math argument out of domain of func";
+	private static final String EDOM_MESSAGE = "Math argument out of domain of func";
 
 	public static final int	ERANGE = 34;
-	public static final String ERANGE_MESSAGE = "Math result not representable";	
+	private static final String ERANGE_MESSAGE = "Math result not representable";	
 	
 	private static final String[] ERRNO_MESSAGES = {
 		EPERM_MESSAGE, // 1
@@ -141,9 +146,21 @@ public class ErrnoMessages {
 		ERANGE_MESSAGE, // 34
 	};
 	
+	/**
+	 * The private constructor
+	 */
 	private ErrnoMessages() {
 	}
 	
+	/**
+	 * Returns a String description for the given errno number. If the number 
+	 * is unknown {@code null} is returned.
+	 * 
+	 * @param errno 
+	 *        the errno number
+	 * @return a String that contains a description for that errno number or 
+	 *         {@code null} if it is a unknown errno number.
+	 */
 	public static final String getDescription(int errno) {
 		errno -= 1;
 		if (errno < 0 || errno >= ERRNO_MESSAGES.length)
