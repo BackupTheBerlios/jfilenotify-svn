@@ -21,7 +21,6 @@
 		
 		<!-- builds the shared library for inotify -->
 		<target name="build-inotify" if="inotifyEnabled">
-				<echo message="building inontify"/>
 				<javah classpath="${build.classes.dir}" class="de.jtdev.jfilenotify.inotify.INotifyService" outputfile="${src.dir}/inotify/jfilenotify.h"/>	
 				<!-- TODO this calls gcc directly (is there no better solution?) -->
 				<exec executable="gcc">
