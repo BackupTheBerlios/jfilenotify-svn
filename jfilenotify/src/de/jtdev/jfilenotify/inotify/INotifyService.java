@@ -1,8 +1,10 @@
 package de.jtdev.jfilenotify.inotify;
 
+import de.jtdev.jfilenotify.FileNotifyConstants;
 import de.jtdev.jfilenotify.FileNotifyException;
 import de.jtdev.jfilenotify.FileNotifyListener;
 import de.jtdev.jfilenotify.FileNotifyService;
+import java.util.TreeSet;
 
 /**
  * This class implements a FileNotifyService with inotify as its backend.
@@ -10,6 +12,8 @@ import de.jtdev.jfilenotify.FileNotifyService;
  * instance and passes them to the corresponding listeners.
  *
  * It uses the library "jfilenotify" to access the inotify C interface.
+ * 
+ * @author Tobias Oelgarte
  */
 public class INotifyService extends Thread implements FileNotifyService {
 
@@ -27,6 +31,19 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 * will be added.
 	 */
 	private boolean isDisposed = false;
+	
+	/**
+	 * This object is used as monitor to stop the thread if no listener is 
+	 * registered.
+	 */
+	private final Object threadLock = new Object();
+	
+	/**
+	 * This set stores the added listerns in groups sorted by the watch 
+	 * descriptor returned by inotify. Listeners that listen to the same inode 
+	 * will be added to the same ListenerGroup.
+	 */
+	private final TreeSet<ListenerGroup> listenerGroupSet = new TreeSet<ListenerGroup>();
 
 	/**
 	 * Creates a new INotifyService instance and allocates the needed native
@@ -45,7 +62,36 @@ public class INotifyService extends Thread implements FileNotifyService {
 	}
 
 	public void addFileNotifyListener(FileNotifyListener listener) throws FileNotifyException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		if (isDisposed)
+			throw new FileNotifyException("Can't add listener to disposed service");
+		
+		String fileName = listener.getFileName();
+		
+		// convertig mask to inotify specific mask
+		int mask = listener.getMask();
+		mask = importMask(mask) | INotifyEvent.IN_MASK_ADD;
+		
+		int watchDescriptor = addWatch(fileDescriptor, fileName, mask); // native call
+		if (watchDescriptor < 0) {
+			String reason = ErrnoMessages.getDescription(-watchDescriptor);
+			throw new FileNotifyException("Listener could not be registered (" + reason + ")");
+		}
+		
+		synchronized (listenerGroupSet) {
+			ListenerGroup g = searchForListenerGroup(watchDescriptor);
+			if (g == null) {
+				g = new ListenerGroup(watchDescriptor);
+				listenerGroupSet.add(g);
+			}
+			g.addListener(listener);
+		}
+		
+		// at least one listener has was added, awake the thread so that it can 
+		// read events for this listener
+		synchronized (threadLock) {
+			threadLock.notify();
+		}
+		
 	}
 
 	public boolean removeFileNotifyListener(FileNotifyListener listener) throws FileNotifyException {
@@ -69,7 +115,51 @@ public class INotifyService extends Thread implements FileNotifyService {
 			}
 		}
 	}
+	
+	/**
+	 * The constants for inotify and this project are not the same, so this 
+	 * methods convert a mask that is used by project to a mask that inotify 
+	 * understands.
+	 * 
+	 * @param externalMask 
+	 *        the mask that should be converted to a mask that fits inotify
+	 * @return returns a mask suitable for inotify
+	 */
+	private static int importMask(final int externalMask) {
+		int m = 0x00000000;
+		
+		if ((FileNotifyConstants.OPENED               & externalMask) != 0)  m |= INotifyEvent.IN_OPEN;
+		if ((FileNotifyConstants.ACCESSED             & externalMask) != 0)  m |= INotifyEvent.IN_ACCESS;
+		if ((FileNotifyConstants.MODIFIED             & externalMask) != 0)  m |= INotifyEvent.IN_MODIFY;
+		if ((FileNotifyConstants.CLOSED_WRITEABLE     & externalMask) != 0)  m |= INotifyEvent.IN_CLOSE_WRITE;
+		if ((FileNotifyConstants.CLOSED_NOT_WRITEABLE & externalMask) != 0)  m |= INotifyEvent.IN_CLOSE_NOWRITE;
+		if ((FileNotifyConstants.ATTRIBUTES_CHANGED   & externalMask) != 0)  m |= INotifyEvent.IN_ATTRIB;
+		
+		if ((FileNotifyConstants.SUBFILE_CREATED & externalMask) != 0)  m |= INotifyEvent.IN_CREATE;
+		if ((FileNotifyConstants.SUBFILE_DELETED & externalMask) != 0)  m |= INotifyEvent.IN_DELETE;
+		if ((FileNotifyConstants.MOVED_FROM      & externalMask) != 0)  m |= INotifyEvent.IN_MOVED_FROM;
+		if ((FileNotifyConstants.MOVED_TO        & externalMask) != 0)  m |= INotifyEvent.IN_MOVED_TO;
+		if ((FileNotifyConstants.SELF_DELETED    & externalMask) != 0)  m |= INotifyEvent.IN_DELETE_SELF;
+		if ((FileNotifyConstants.SELF_MOVED      & externalMask) != 0)  m |= INotifyEvent.IN_MOVE_SELF;
+		
+		if ((FileNotifyConstants.ONLY_DIRECTORY & externalMask) != 0)  m |= INotifyEvent.IN_ONLYDIR;
+		if ((FileNotifyConstants.DONT_FOLLOW    & externalMask) != 0)  m |= INotifyEvent.IN_DONT_FOLLOW;
+		
+		return m;
+	}
+	
+	private ListenerGroup searchForListenerGroup(int watchDecsriptor) {
+		ListenerGroup searchGroup = new ListenerGroup(watchDecsriptor);
+		ListenerGroup g;
+		synchronized (listenerGroupSet) {
+			g = listenerGroupSet.floor(searchGroup);
+		}
+		if (searchGroup.equals(g))
+			return g;
+		return null;
+	}
 
+	
 	/**
 	 * Creates a native inotify instance and returns its file descriptor.
 	 * If an error occurs, this method returns a negative value which is the 
