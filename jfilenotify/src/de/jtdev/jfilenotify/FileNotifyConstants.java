@@ -1,8 +1,10 @@
 package de.jtdev.jfilenotify;
 
 /**
+ * TODO: This is no Javadoc, this is just developer information!
  * This constants are currently very close related to inotify, but not all
- * implementations can provide such fine notification.
+ * implementations can provide such fine notification. This should be reduced 
+ * to the most common case
  */
 public interface FileNotifyConstants {
 
