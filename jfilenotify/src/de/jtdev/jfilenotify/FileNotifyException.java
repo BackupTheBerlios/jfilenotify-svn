@@ -1,64 +1,64 @@
 package de.jtdev.jfilenotify;
 
 /**
- * <p>Signals that some service of notification is not supported or used in the
- * wrong way.</p>
+ * Signals that some service of notification is not supported or used in the
+ * wrong way.
  *
- * @author  Tobias Oelgarte
+ * @author Tobias Oelgarte
  */
 public class FileNotifyException extends Exception {
 	
 	/**
-	 * <p>Constructs an {@code FileNotifyException} with {@code null} as its
-	 * error detail message.</p>
+	 * Constructs an {@code FileNotifyException} with {@code null} as its
+	 * error detail message.
 	 */
 	public FileNotifyException() {
 		super();
 	}
 	
 	/**
-	 * <p>Constructs an {@code FileNotifyException} with the specified detail
-	 * message.</p>
+	 * Constructs an {@code FileNotifyException} with the specified detail
+	 * message.
 	 * 
 	 * @param message
-	 *        <p>The detail message (which is saved for later retrieval by the
-	 *        {@link #getMessage()} method)</p>
+	 *        The detail message (which is saved for later retrieval by the
+	 *        {@link #getMessage()} method)
 	 */
 	public FileNotifyException(String message) {
 		super(message);
 	}
 	
 	/**
-	 * <p>Constructs an {@code FileNotifyException} with the specified detail
-	 * message and cause.</p>
+	 * Constructs an {@code FileNotifyException} with the specified detail
+	 * message and cause.
 	 * 
 	 * <p>Note that the detail message associated with {@code cause} is
 	 * <i>not</i> automatically incorporated into this exception's detail
-	 * message.</p>
+	 * message.
 	 * 
 	 * @param message
-	 *        <p>The detail message (which is saved for later retrieval by the
-	 *        {@link #getMessage()} method)</p>
+	 *        The detail message (which is saved for later retrieval by the
+	 *        {@link #getMessage()} method)
 	 * @param cause
-	 *        <p>The cause (which is saved for later retrieval by the
+	 *        The cause (which is saved for later retrieval by the
 	 *        {@link #getCause()} method).  (A null value is permitted, and
-	 *        indicates that the cause is nonexistent or unknown.)</p>
+	 *        indicates that the cause is nonexistent or unknown.)
 	 */
 	public FileNotifyException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
 	/**
-	 * <p>Constructs an {@code IOException} with the specified cause and a
+	 * Constructs an {@code IOException} with the specified cause and a
 	 * detail message of {@code (cause==null ? null : cause.toString())}
 	 * (which typically contains the class and detail message of {@code cause}).
 	 * This constructor is useful for IO exceptions that are little more
-	 * than wrappers for other throwables.</p>
+	 * than wrappers for other throwables.
 	 *
 	 * @param cause
-	 *        <p>The cause (which is saved for later retrieval by the
+	 *        The cause (which is saved for later retrieval by the
 	 *        {@link #getCause()} method).  (A null value is permitted, and
-	 *        indicates that the cause is nonexistent or unknown.)</p>
+	 *        indicates that the cause is nonexistent or unknown.)
 	 */
 	public FileNotifyException(Throwable cause) {
 		super(cause);
