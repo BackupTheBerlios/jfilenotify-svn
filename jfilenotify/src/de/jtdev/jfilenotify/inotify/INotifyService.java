@@ -47,4 +47,10 @@ public class INotifyService implements FileNotifyService {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 	
+	private native int createINotifyInstance();
+	private native int releaseINotifyInstance();
+	private native int addWatch(int fileDescriptor, String fileName, int mask);
+	private native int removeWatch(int fileDescriptor, int watchDescriptor);
+	private native INotifyEvent[] readEvents(int fileDescriptor);
+	
 }
