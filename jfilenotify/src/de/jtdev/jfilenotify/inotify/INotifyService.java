@@ -156,6 +156,17 @@ public class INotifyService extends Thread implements FileNotifyService {
 		if (!isDisposed) {
 			isDisposed = true;
 			int ret = releaseINotifyInstance(fileDescriptor); // native call
+			
+			// removing all listener groups, so that the thread can terminate
+			synchronized (listenerGroupSet) {
+				listenerGroupSet.clear();
+			}
+			
+			// awake the thread, so that he can terminate
+			synchronized (threadLock) {
+				threadLock.notify();
+			}
+			
 			if (ret < 0) {
 				String reason = ErrnoMessages.getDescription(-ret);
 				throw new FileNotifyException("Service could not be disposed (" + reason + ")");
