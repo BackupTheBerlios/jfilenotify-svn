@@ -40,6 +40,24 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	}
 	
 	/**
+	 * Returns the combined mask of all added listeners.
+	 * 
+	 * @return the combined mask.
+	 */
+	public int getCombinedMask() {
+		return combinedMask;
+	}
+	
+	/**
+	 * Returns the file name of the lastest added listener.
+	 * 
+	 * @return the file name of the lastest added listener
+	 */
+	public String getLastFileName() {
+		return lastFileName;
+	}
+	
+	/**
 	 * Adds the listener to this group and updates the most common mask for 
 	 * inotify.
 	 * 
@@ -85,6 +103,15 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 			}
 			return removed;
 		}
+	}
+	
+	/**
+	 * Returns true if no listener is stored in this group, false otherwise.
+	 * 
+	 * @return true is this group is empty
+	 */
+	public boolean isEmpty() {
+		return listenerList.isEmpty();
 	}
 	
 	/**
