@@ -2,6 +2,7 @@ package de.jtdev.jfilenotify.inotify;
 
 import de.jtdev.jfilenotify.FileNotifyListener;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Since inotify only allows one listener per inode, this group is used to 
@@ -50,11 +51,51 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 			// make sure that the same listener can only be once registered
 			if (!listenerList.contains(listener))
 				listenerList.add(listener);
+		
+			// TODO Option ONLY_DIRECTORY must be cleared if only one listener is 
+			// listening in not only directory mode.
+			combinedMask |= listener.getMask();
+			lastFileName = listener.getFileName();
 		}
-		// TODO Option ONLY_DIRECTORY must be cleared if only one listener is 
-		// listening in not only directory mode.
-		combinedMask |= listener.getMask();
-		lastFileName = listener.getFileName();
+	}
+	
+	/**
+	 * This method updates the combined mask of all listeners in the right way.
+	 * 
+	 * @param addedMask
+	 *        the mask of the newly added listener
+	 */
+	private void updateCombinedMask(int addedMask) {
+		// TODO implement this, and use it in addListener
+	}
+	
+	/**
+	 * Removes the listener from this group and updates the common mask for 
+	 * inotify. Returns true if the group contained the listener, false 
+	 * otherwise.
+	 * @param listener
+	 *        the listener that should be removed
+	 * @return true if the listener could be removed, false otherwise
+	 */
+	public boolean removeListener(FileNotifyListener listener) {
+		synchronized (listenerList) {
+			boolean removed = listenerList.remove(listener);
+			if (removed) {
+				recomputeCombinedMask(listenerList);
+			}
+			return removed;
+		}
+	}
+	
+	/**
+	 * This method computes the combined mask of all listeners in the 
+	 * listenerList. This is more time intensive as updateCombinedMask().
+	 * 
+	 * @param listenerList
+	 *        the list that contains all remaining listener
+	 */
+	private void recomputeCombinedMask(List<FileNotifyListener> listenerList) {
+		// TODO implement this
 	}
 
 	/**
