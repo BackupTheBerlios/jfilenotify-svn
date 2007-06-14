@@ -222,8 +222,8 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 * Creates a native inotify instance and returns its file descriptor.
 	 * If an error occurs, this method returns a negative value which is the 
 	 * negative errno number.
-	 * @return the file descriptor on success. Otherwise the negative errno 
-	 *         number.
+	 * @return the file descriptor or a negative errno number if it
+	 *         fails
 	 */
 	private native int createINotifyInstance();
 	
@@ -233,12 +233,39 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 * @param fileDescriptor 
 	 *        The file descriptor the native inotify instance that sould be 
 	 *        released.
-	 * @return 0 on success. Otherwise the negative errno number.
+	 * @return 0 on success or a negative errno number if it fails
 	 */
 	private native int releaseINotifyInstance(int fileDescriptor);
 	
+	/**
+	 * Adds a watch to the inotify instance by passing the corresponding
+	 * file descriptor, file name and mask.
+	 *
+	 * @param fileDescriptor
+	 *        the descriptor used to access the inotify instance
+	 * @param fileName
+	 *        the name of the file to watch for
+	 * @param mask
+	 *        the mask decides which types of events will trigger the
+	 *        watch
+	 * @return the watch descriptor or a negative errno number if it
+	 *         fails
+	 */
 	private native int addWatch(int fileDescriptor, String fileName, int mask);
+	
+	/**
+	 * Removes a watch from the inotify instance by passing the
+	 * corresponding file descriptor and watch descriptor.
+	 *
+	 * @param fileDescriptor
+	 *        the file descriptor used to access the inotify instance
+	 * @param watchDescriptor
+	 *        the watch descriptor used to define which watch will be
+	 *        removed
+	 * @return 0 on success or a negative errno number if it fails
+	 */
 	private native int removeWatch(int fileDescriptor, int watchDescriptor);
+	
 	private native INotifyEvent[] readEvents(int fileDescriptor);
 
 }
