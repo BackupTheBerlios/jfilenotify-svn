@@ -4,6 +4,7 @@ import de.jtdev.jfilenotify.FileNotifyConstants;
 import de.jtdev.jfilenotify.FileNotifyException;
 import de.jtdev.jfilenotify.FileNotifyListener;
 import de.jtdev.jfilenotify.FileNotifyService;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 /**
@@ -94,8 +95,54 @@ public class INotifyService extends Thread implements FileNotifyService {
 		
 	}
 
+	/**
+	 * 
+	 */
 	public boolean removeFileNotifyListener(FileNotifyListener listener) throws FileNotifyException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		// finds the listener, removes it from his group and removes also 
+		// the group if it is empty after removing this listener.
+		ListenerGroup g = null;
+		synchronized (listenerGroupSet) {
+			Iterator<ListenerGroup> iter = listenerGroupSet.iterator();
+			while (iter.hasNext()) {
+				ListenerGroup tmp = iter.next();
+				if (tmp.removeListener(listener)) {
+					if (tmp.isEmpty()) {
+						iter.remove();
+					}
+					g = tmp;
+					break;
+				}
+			}
+		}
+		
+		// if the listener was not added to this service return false.
+		if (g == null)
+			return false;
+		
+		synchronized (g) {
+			if (g.isEmpty()) { // remove the watch if the group is empty
+				int ret = removeWatch(fileDescriptor, g.getWatchDescriptor()); // native call
+				if (ret < 0) {
+					String reason = ErrnoMessages.getDescription(-ret);
+					throw new FileNotifyException("Listener could not be unregisterd (" + reason + ")");
+				}
+			} else { // update the mask of the watch, if group is not empty
+				int ret = addWatch(fileDescriptor, g.getLastFileName(), g.getCombinedMask());
+				if (ret < 0) {
+					String reason = ErrnoMessages.getDescription(-ret);
+					throw new FileNotifyException("Listener could not be updated (" + reason + ")");
+				}
+				// TODO is inotify free to return a diffrent watch as before?
+				//      in that case the watchDescriptor of the group must be 
+				//      updated, the listenerGroupSet newly sorted, 
+				if (ret != g.getWatchDescriptor()) {
+					throw new FileNotifyException("Other descriptor returned, yet missing code to handle this.");
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
