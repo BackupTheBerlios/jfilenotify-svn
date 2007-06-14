@@ -7,6 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* Inaccessible static: threadInitNumber */
+/* Inaccessible static: threadSeqNumber */
+#undef de_jtdev_jfilenotify_inotify_INotifyService_MIN_PRIORITY
+#define de_jtdev_jfilenotify_inotify_INotifyService_MIN_PRIORITY 1L
+#undef de_jtdev_jfilenotify_inotify_INotifyService_NORM_PRIORITY
+#define de_jtdev_jfilenotify_inotify_INotifyService_NORM_PRIORITY 5L
+#undef de_jtdev_jfilenotify_inotify_INotifyService_MAX_PRIORITY
+#define de_jtdev_jfilenotify_inotify_INotifyService_MAX_PRIORITY 10L
+/* Inaccessible static: EMPTY_STACK_TRACE */
+/* Inaccessible static: SUBCLASS_IMPLEMENTATION_PERMISSION */
+/* Inaccessible static: subclassAudits */
+/* Inaccessible static: defaultUncaughtExceptionHandler */
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    createINotifyInstance
