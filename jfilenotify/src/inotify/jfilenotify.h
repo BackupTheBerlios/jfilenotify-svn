@@ -54,9 +54,9 @@ JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_removeWa
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    readEvents
- * Signature: (I)[Lde/jtdev/jfilenotify/inotify/INotifyEvent;
+ * Signature: (I)Ljava/util/List;
  */
-JNIEXPORT jobjectArray JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEvents
+JNIEXPORT jobject JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEvents
   (JNIEnv *, jobject, jint);
 
 #ifdef __cplusplus
