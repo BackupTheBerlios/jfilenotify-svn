@@ -61,8 +61,8 @@ public class INotifyService extends Thread implements FileNotifyService {
 			String reason = ErrnoMessages.getDescription((int) -fileDescriptor);
 			throw new FileNotifyException("Service could not be created (" + reason + ")");
 		}
-		this.start();
 		this.setDaemon(true);
+		this.start();
 	}
 
 	public void addFileNotifyListener(FileNotifyListener listener) throws FileNotifyException {
@@ -219,7 +219,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 		if ((FileNotifyConstants.SELF_MOVED      & externalMask) != 0)  m |= INotifyEvent.IN_MOVE_SELF;
 		
 		if ((FileNotifyConstants.ONLY_DIRECTORY & externalMask) != 0)  m |= INotifyEvent.IN_ONLYDIR;
-		if ((FileNotifyConstants.DONT_FOLLOW    & externalMask) != 0)  m |= INotifyEvent.IN_DONT_FOLLOW;
+//		if ((FileNotifyConstants.DONT_FOLLOW    & externalMask) != 0)  m |= INotifyEvent.IN_DONT_FOLLOW;
 		
 		return m;
 	}
@@ -284,18 +284,23 @@ public class INotifyService extends Thread implements FileNotifyService {
 	}
 
 	public void run() {
+		System.out.println("Thread started");
 		while (true) {
 			
 			while (listenerGroupSet.isEmpty() && !isDisposed) {
 				synchronized (threadLock) {
+					System.out.println("Thread will sleep now.");
 					try { threadLock.wait(); } catch (InterruptedException ex) { }
+					System.out.println("Thread awaked");
 				}
 			}
 			
 			if (isDisposed)
 				break;
 			
+			System.out.println("Thread will read events");
 			List<INotifyEvent> events = readEvents(fileDescriptor); // native call
+			System.out.println(events.size() + " events read by thread");
 			
 			if (events == null) {
 				if (!isDisposed) {
@@ -306,11 +311,15 @@ public class INotifyService extends Thread implements FileNotifyService {
 			
 			for (INotifyEvent event : events) {
 				if (event.isIgnoreEvent()) {
+					System.out.println("Ignoreevent read, remove listener group now.");
 					removeListenerGroup(event);
 				} else {
 					ListenerGroup g = searchForListenerGroup(event.getWatchDescriptor());
 					if (g != null) {
+						System.out.println("Listenergroup found");
 						g.notifyAllListener(event);
+					} else {
+						System.out.println("Listenergroup not found for wd=" + event.getWatchDescriptor());
 					}
 				}
 			}

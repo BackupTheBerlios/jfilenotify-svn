@@ -73,7 +73,7 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 		
 			// TODO Option ONLY_DIRECTORY must be cleared if only one listener is 
 			// listening in not only directory mode.
-			combinedMask |= listener.getMask();
+			updateCombinedMask(listener.getMask());
 			lastFileName = listener.getFileName();
 		}
 	}
@@ -85,7 +85,10 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 *        the mask of the newly added listener
 	 */
 	private void updateCombinedMask(int addedMask) {
-		// TODO implement this, and use it in addListener
+		// enabels a event if it is allready enabled or added
+		combinedMask |= addedMask & INotifyEvent.IN_EVENT_MASK;
+		// disables a restricting option, if the added mask dont restrict it.
+		combinedMask &= addedMask | (~INotifyEvent.IN_OPTION_MASK);
 	}
 	
 	/**
@@ -100,7 +103,7 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 		synchronized (listenerList) {
 			boolean removed = listenerList.remove(listener);
 			if (removed) {
-				recomputeCombinedMask(listenerList);
+				recomputeCombinedMask();
 			}
 			return removed;
 		}
@@ -122,8 +125,11 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 * @param listenerList
 	 *        the list that contains all remaining listener
 	 */
-	private void recomputeCombinedMask(List<FileNotifyListener> listenerList) {
-		// TODO implement this
+	private void recomputeCombinedMask() {
+		combinedMask = 0x00000000;
+		for (FileNotifyListener f : listenerList) {
+			updateCombinedMask(f.getMask());
+		}
 	}
 	
 	public void discardAllListeners(INotifyEvent event) {
@@ -165,5 +171,9 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 		long diff = this.getWatchDescriptor() - g.getWatchDescriptor();
 		return (diff > 0) ? 1 : ((diff == 0) ? 0 : -1);
     }
+	
+	public boolean equals(Object obj) {
+		return obj instanceof ListenerGroup ? ((ListenerGroup)obj).getWatchDescriptor() == this.getWatchDescriptor() : false;
+	}
 	
 }

@@ -19,7 +19,7 @@ public class INotifyEvent implements FileNotifyEvent {
 	public static final int IN_DELETE        = 0x00000200; // Subfile was deleted.
 	public static final int IN_DELETE_SELF   = 0x00000400; // Self was deleted.
 	public static final int IN_MOVE_SELF     = 0x00000800; // Self was moved.
-
+	
 	// Events sent by the kernel.
 	public static final int IN_UNMOUNT       = 0x00002000; // Backing fs was unmounted.
 	public static final int IN_Q_OVERFLOW    = 0x00004000; // Event queued overflowed.
@@ -31,7 +31,11 @@ public class INotifyEvent implements FileNotifyEvent {
 	public static final int IN_MASK_ADD      = 0x20000000; // Add to the mask of an already existing watch.
 	public static final int IN_ISDIR         = 0x40000000; // Event occurred against dir.
 	public static final int IN_ONESHOT       = 0x80000000; // Only send event once. 
+
 	
+	public static final int IN_EVENT_MASK    = 0x00000fff;
+	public static final int IN_OPTION_MASK   = 0x01000000;
+
 	private long watchDescriptor;
 	private int cookie;
 	private int mask;
