@@ -37,7 +37,11 @@ public class INotifyEvent implements FileNotifyEvent {
 	private int mask;
 	private String fileName;
 	
-	public INotifyEvent() {
+	public INotifyEvent(int watchDescriptor, int cookie, int mask, String fileName) {
+		this.watchDescriptor = watchDescriptor;
+		this.cookie = cookie;
+		this.mask = mask;
+		this.fileName = fileName;
 	}
 	
 	public int getWatchDescriptor() {
