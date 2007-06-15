@@ -5,6 +5,7 @@ import de.jtdev.jfilenotify.FileNotifyException;
 import de.jtdev.jfilenotify.FileNotifyListener;
 import de.jtdev.jfilenotify.FileNotifyService;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -26,7 +27,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	/**
 	 * The file descriptor to the native allocated inotify instance
 	 */
-	private int fileDescriptor;
+	private long fileDescriptor;
 
 	/**
 	 * If the service is disposed he will no longer acceppt that new Listeners
@@ -57,8 +58,8 @@ public class INotifyService extends Thread implements FileNotifyService {
 	public INotifyService() throws FileNotifyException {
 		fileDescriptor = createINotifyInstance(); // native call
 		if (fileDescriptor < 0) {
-			String reason = ErrnoMessages.getDescription(-fileDescriptor);
-			throw new FileNotifyException("Service could not be creted (" + reason + ")");
+			String reason = ErrnoMessages.getDescription((int) -fileDescriptor);
+			throw new FileNotifyException("Service could not be created (" + reason + ")");
 		}
 		this.start();
 	}
@@ -73,9 +74,9 @@ public class INotifyService extends Thread implements FileNotifyService {
 		int mask = listener.getMask();
 		mask = importMask(mask) | INotifyEvent.IN_MASK_ADD;
 		
-		int watchDescriptor = addWatch(fileDescriptor, fileName, mask); // native call
+		long watchDescriptor = addWatch(fileDescriptor, fileName, mask); // native call
 		if (watchDescriptor < 0) {
-			String reason = ErrnoMessages.getDescription(-watchDescriptor);
+			String reason = ErrnoMessages.getDescription((int) -watchDescriptor);
 			throw new FileNotifyException("Listener could not be registered (" + reason + ")");
 		}
 		
@@ -124,15 +125,15 @@ public class INotifyService extends Thread implements FileNotifyService {
 		
 		synchronized (g) {
 			if (g.isEmpty()) { // remove the watch if the group is empty
-				int ret = removeWatch(fileDescriptor, g.getWatchDescriptor()); // native call
+				long ret = removeWatch(fileDescriptor, g.getWatchDescriptor()); // native call
 				if (ret < 0) {
-					String reason = ErrnoMessages.getDescription(-ret);
+					String reason = ErrnoMessages.getDescription((int) -ret);
 					throw new FileNotifyException("Listener could not be unregisterd (" + reason + ")");
 				}
 			} else { // update the mask of the watch, if group is not empty
-				int ret = addWatch(fileDescriptor, g.getLastFileName(), g.getCombinedMask());
+				long ret = addWatch(fileDescriptor, g.getLastFileName(), g.getCombinedMask());
 				if (ret < 0) {
-					String reason = ErrnoMessages.getDescription(-ret);
+					String reason = ErrnoMessages.getDescription((int) -ret);
 					throw new FileNotifyException("Listener could not be updated (" + reason + ")");
 				}
 				// TODO is inotify free to return a diffrent watch as before?
@@ -156,7 +157,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	public synchronized void dispose() throws FileNotifyException {
 		if (!isDisposed) {
 			isDisposed = true;
-			int ret = releaseINotifyInstance(fileDescriptor); // native call
+			long ret = releaseINotifyInstance(fileDescriptor); // native call
 			
 			// removing all listener groups, so that the thread can terminate
 			synchronized (listenerGroupSet) {
@@ -169,7 +170,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 			}
 			
 			if (ret < 0) {
-				String reason = ErrnoMessages.getDescription(-ret);
+				String reason = ErrnoMessages.getDescription((int) -ret);
 				throw new FileNotifyException("Service could not be disposed (" + reason + ")");
 			}
 		}
@@ -256,7 +257,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 		return m;
 	}
 	
-	private ListenerGroup searchForListenerGroup(int watchDecsriptor) {
+	private ListenerGroup searchForListenerGroup(long watchDecsriptor) {
 		ListenerGroup searchGroup = new ListenerGroup(watchDecsriptor);
 		ListenerGroup g;
 		synchronized (listenerGroupSet) {
@@ -315,6 +316,81 @@ public class INotifyService extends Thread implements FileNotifyService {
 		}
 	}
 	
+	private List<INotifyEvent> readEvents(long fileDescriptor) {
+		
+		byte[] data = readEventData(fileDescriptor);
+		
+		if (data == null)
+			return null;
+		
+		if (data.length == 0)
+			return new LinkedList<INotifyEvent>();
+		
+		LinkedList<INotifyEvent> list = new LinkedList<INotifyEvent>();
+		
+		int index = 0;
+		while (index < data.length) {
+			
+			long watchDescriptor;
+			if (getIntegerSize() == 8) {
+				watchDescriptor = readUnsignedLongReversedOrder(data, index);
+				index += 8;
+			} else {
+				watchDescriptor = readUnsignedIntReversedOrder(data, index);
+				index += 4;
+			}
+			
+			int mask = readUnsignedIntReversedOrder(data, index);
+			index += 4;
+			
+			int cookie = readUnsignedIntReversedOrder(data, index);
+			index += 4;
+			
+			int length = readUnsignedIntReversedOrder(data, index);
+			index += 4;
+			
+			String fileName = null;
+			if (length > 0) {
+				int strlen = strlen(data, index, length);
+				fileName = new String(data, index, strlen);
+			}
+			index += length;
+			
+			INotifyEvent event = new INotifyEvent(watchDescriptor, cookie, mask, fileName);
+			list.add(event);
+		}
+		
+		return list;
+	}
+		
+	private int readUnsignedIntReversedOrder(byte[] b, int pos) {
+		return 
+				b[pos]   <<  0 | 
+				b[pos+1] <<  8 | 
+				b[pos+2] << 16 | 
+				b[pos+3] << 24;
+	}
+	
+	private long readUnsignedLongReversedOrder(byte[] b, int pos) {
+		return 
+				(long) b[pos]   <<  0 |
+				(long) b[pos+1] <<  8 | 
+				(long) b[pos+2] << 16 |
+				(long) b[pos+3] << 24 | 
+				(long) b[pos+4] << 32 | 
+				(long) b[pos+5] << 40 | 
+				(long) b[pos+6] << 48 |
+				(long) b[pos+7] << 54;
+	}
+	
+	private int strlen(byte[] b, int from, int len) {
+		int i = from;
+		int end = from + len;
+		while (b[i] != 0 && i < end)
+			i++;
+		return i - from;
+	}
+	
 	/**
 	 * Creates a native inotify instance and returns its file descriptor.
 	 * If an error occurs, this method returns a negative value which is the 
@@ -322,7 +398,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 * @return the file descriptor or a negative errno number if it
 	 *         fails
 	 */
-	private native int createINotifyInstance();
+	private native long createINotifyInstance();
 	
 	/**
 	 * Releases a native inotify instance and return 0 on success or the 
@@ -332,7 +408,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 *        released.
 	 * @return 0 on success or a negative errno number if it fails
 	 */
-	private native int releaseINotifyInstance(int fileDescriptor);
+	private native long releaseINotifyInstance(long fileDescriptor);
 	
 	/**
 	 * Adds a watch to the inotify instance by passing the corresponding
@@ -348,7 +424,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 * @return the watch descriptor or a negative errno number if it
 	 *         fails
 	 */
-	private native int addWatch(int fileDescriptor, String fileName, int mask);
+	private native long addWatch(long fileDescriptor, String fileName, int mask);
 	
 	/**
 	 * Removes a watch from the inotify instance by passing the
@@ -361,8 +437,10 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 *        removed
 	 * @return 0 on success or a negative errno number if it fails
 	 */
-	private native int removeWatch(int fileDescriptor, int watchDescriptor);
+	private native long removeWatch(long fileDescriptor, long watchDescriptor);
 	
-	private native List<INotifyEvent> readEvents(int fileDescriptor);
+	private native byte[] readEventData(long fileDescriptor);
+	
+	private native int getIntegerSize();
 
 }

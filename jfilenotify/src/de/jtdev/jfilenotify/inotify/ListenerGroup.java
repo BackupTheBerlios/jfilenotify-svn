@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class ListenerGroup implements Comparable<ListenerGroup> {
 	
-	private int watchDescriptor;
+	private long watchDescriptor;
 	private LinkedList<FileNotifyListener> listenerList = new LinkedList<FileNotifyListener>();
 	private int combinedMask = 0x00000000;
 	private String lastFileName = null;
@@ -27,7 +27,7 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 * @param watchDescriptor
 	 *        the unique watch descriptor of this group
 	 */
-	public ListenerGroup(int watchDescriptor) {
+	public ListenerGroup(long watchDescriptor) {
 		this.watchDescriptor = watchDescriptor;
 	}
 	
@@ -36,7 +36,7 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 * 
 	 * @return the unique watch descriptor
 	 */
-	public int getWatchDescriptor() {
+	public long getWatchDescriptor() {
 		return watchDescriptor;
 	}
 	
@@ -162,7 +162,8 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 * @return the arithmetic diffrence between the  watch descriptors
 	 */
     public int compareTo(ListenerGroup g) {
-		return this.getWatchDescriptor() - g.getWatchDescriptor();
+		long diff = this.getWatchDescriptor() - g.getWatchDescriptor();
+		return (diff > 0) ? 1 : ((diff == 0) ? 0 : -1);
     }
 	
 }

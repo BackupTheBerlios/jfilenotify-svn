@@ -32,19 +32,19 @@ public class INotifyEvent implements FileNotifyEvent {
 	public static final int IN_ISDIR         = 0x40000000; // Event occurred against dir.
 	public static final int IN_ONESHOT       = 0x80000000; // Only send event once. 
 	
-	private int watchDescriptor;
+	private long watchDescriptor;
 	private int cookie;
 	private int mask;
 	private String fileName;
 	
-	public INotifyEvent(int watchDescriptor, int cookie, int mask, String fileName) {
+	public INotifyEvent(long watchDescriptor, int cookie, int mask, String fileName) {
 		this.watchDescriptor = watchDescriptor;
 		this.cookie = cookie;
 		this.mask = mask;
 		this.fileName = fileName;
 	}
 	
-	public int getWatchDescriptor() {
+	public long getWatchDescriptor() {
 		return watchDescriptor;
 	}
 	

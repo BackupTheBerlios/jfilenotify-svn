@@ -22,42 +22,50 @@ extern "C" {
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    createINotifyInstance
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_createINotifyInstance
+JNIEXPORT jlong JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_createINotifyInstance
   (JNIEnv *, jobject);
 
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    releaseINotifyInstance
- * Signature: (I)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_releaseINotifyInstance
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jlong JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_releaseINotifyInstance
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    addWatch
- * Signature: (ILjava/lang/String;I)I
+ * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_addWatch
-  (JNIEnv *, jobject, jint, jstring, jint);
+JNIEXPORT jlong JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_addWatch
+  (JNIEnv *, jobject, jlong, jstring, jint);
 
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
  * Method:    removeWatch
- * Signature: (II)I
+ * Signature: (JJ)J
  */
-JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_removeWatch
-  (JNIEnv *, jobject, jint, jint);
+JNIEXPORT jlong JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_removeWatch
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     de_jtdev_jfilenotify_inotify_INotifyService
- * Method:    readEvents
- * Signature: (I)Ljava/util/List;
+ * Method:    readEventData
+ * Signature: (J)[B
  */
-JNIEXPORT jobject JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEvents
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jbyteArray JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEventData
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     de_jtdev_jfilenotify_inotify_INotifyService
+ * Method:    getIntegerSize
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_getIntegerSize
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }
