@@ -62,6 +62,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 			throw new FileNotifyException("Service could not be created (" + reason + ")");
 		}
 		this.start();
+		this.setDaemon(true);
 	}
 
 	public void addFileNotifyListener(FileNotifyListener listener) throws FileNotifyException {
