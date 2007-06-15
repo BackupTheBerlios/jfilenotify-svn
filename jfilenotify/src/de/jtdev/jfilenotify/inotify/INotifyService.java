@@ -5,6 +5,7 @@ import de.jtdev.jfilenotify.FileNotifyException;
 import de.jtdev.jfilenotify.FileNotifyListener;
 import de.jtdev.jfilenotify.FileNotifyService;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 
 /**
@@ -175,8 +176,23 @@ public class INotifyService extends Thread implements FileNotifyService {
 	}
 	
 	/**
+	 * <p>Called by the garbage collector on this object when garbage collection
+	 * determines that there are no more references to the object.</p>
+	 *
+	 * <p>Internaly it calles {@link #dispose()} to make sure not needed
+	 * resources are released.</p>
+	 */
+	public void finalize() {
+		try {
+			dispose();
+		} catch (FileNotifyException ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	/**
 	 * The constants for inotify and this project are not the same, so this 
-	 * methods convert a mask that is used by project to a mask that inotify 
+	 * method convert a mask that is used by project to a mask that inotify 
 	 * understands.
 	 * 
 	 * @param externalMask 
@@ -206,6 +222,40 @@ public class INotifyService extends Thread implements FileNotifyService {
 		return m;
 	}
 	
+	/**
+	 * The constants for inotify and this project are not the same, so this 
+	 * method convert a mask that is used by inotify to a mask that this 
+	 * project uses.
+	 * 
+	 * @param internalMask
+	 *        the mask tath should be converted to a mask that fits this 
+	 *        project
+	 * @return returns a mask suitable fot this project
+	 */
+	protected static int exportMask(final int internalMask) {
+		int m = 0x00000000;
+		
+		if ((INotifyEvent.IN_OPEN          & internalMask) != 0)  m |= FileNotifyConstants.OPENED;
+		if ((INotifyEvent.IN_ACCESS        & internalMask) != 0)  m |= FileNotifyConstants.ACCESSED;
+		if ((INotifyEvent.IN_MODIFY        & internalMask) != 0)  m |= FileNotifyConstants.MODIFIED;
+		if ((INotifyEvent.IN_CLOSE_WRITE   & internalMask) != 0)  m |= FileNotifyConstants.CLOSED_WRITEABLE;
+		if ((INotifyEvent.IN_CLOSE_NOWRITE & internalMask) != 0)  m |= FileNotifyConstants.CLOSED_NOT_WRITEABLE;
+		if ((INotifyEvent.IN_ATTRIB        & internalMask) != 0)  m |= FileNotifyConstants.ATTRIBUTES_CHANGED;
+		
+		if ((INotifyEvent.IN_CREATE      & internalMask) != 0)  m |= FileNotifyConstants.SUBFILE_CREATED;
+		if ((INotifyEvent.IN_DELETE      & internalMask) != 0)  m |= FileNotifyConstants.SUBFILE_DELETED;
+		if ((INotifyEvent.IN_MOVED_FROM  & internalMask) != 0)  m |= FileNotifyConstants.MOVED_FROM;
+		if ((INotifyEvent.IN_MOVED_TO    & internalMask) != 0)  m |= FileNotifyConstants.MOVED_TO;
+		if ((INotifyEvent.IN_DELETE_SELF & internalMask) != 0)  m |= FileNotifyConstants.SELF_DELETED;
+		if ((INotifyEvent.IN_MOVE_SELF   & internalMask) != 0)  m |= FileNotifyConstants.SELF_MOVED;
+		
+		// TODO overflow is ignored completly so far.. pray that it does not happen ;-|
+		// if ((INotifyEvent.IN_ISDIR   & internalMask) != 0)  m |= FileNotifyConstants.IS_DIRECTORY;
+		if ((INotifyEvent.IN_UNMOUNT & internalMask) != 0)  m |= FileNotifyConstants.UNMOUNTED;
+		
+		return m;
+	}
+	
 	private ListenerGroup searchForListenerGroup(int watchDecsriptor) {
 		ListenerGroup searchGroup = new ListenerGroup(watchDecsriptor);
 		ListenerGroup g;
@@ -216,7 +266,54 @@ public class INotifyService extends Thread implements FileNotifyService {
 			return g;
 		return null;
 	}
+	
+	private boolean removeListenerGroup(INotifyEvent event) {
+		// TODO use cached version of searchGroup for better performance
+		ListenerGroup searchGroup = new ListenerGroup(event.getWatchDescriptor());
+		synchronized (listenerGroupSet) {
+			ListenerGroup g = listenerGroupSet.floor(searchGroup);
+			if (searchGroup.equals(g)) {
+				listenerGroupSet.remove(g);
+				g.discardAllListeners(event);
+				return true;
+			}
+		}
+		return false;
+	}
 
+	public void run() {
+		while (true) {
+			
+			while (listenerGroupSet.isEmpty()) {
+				synchronized (threadLock) {
+					try { threadLock.wait(); } catch (InterruptedException ex) { }
+				}
+			}
+			
+			if (isDisposed)
+				break;
+			
+			List<INotifyEvent> events = readEvents(fileDescriptor); // native call
+			
+			if (events == null) {
+				if (!isDisposed) {
+					new FileNotifyException("Critical error while reading events").printStackTrace();
+				}
+				break; // no more events while all watches are removed and service is disposed
+			}
+			
+			for (INotifyEvent event : events) {
+				if (event.isIgnoreEvent()) {
+					removeListenerGroup(event);
+				} else {
+					ListenerGroup g = searchForListenerGroup(event.getWatchDescriptor());
+					if (g != null) {
+						g.notifyAllListener(event);
+					}
+				}
+			}
+		}
+	}
 	
 	/**
 	 * Creates a native inotify instance and returns its file descriptor.
@@ -266,6 +363,6 @@ public class INotifyService extends Thread implements FileNotifyService {
 	 */
 	private native int removeWatch(int fileDescriptor, int watchDescriptor);
 	
-	private native INotifyEvent[] readEvents(int fileDescriptor);
+	private native List<INotifyEvent> readEvents(int fileDescriptor);
 
 }

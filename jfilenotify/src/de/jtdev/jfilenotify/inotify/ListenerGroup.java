@@ -1,5 +1,6 @@
 package de.jtdev.jfilenotify.inotify;
 
+import de.jtdev.jfilenotify.FileNotifyConstants;
 import de.jtdev.jfilenotify.FileNotifyListener;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,6 +124,34 @@ public class ListenerGroup implements Comparable<ListenerGroup> {
 	 */
 	private void recomputeCombinedMask(List<FileNotifyListener> listenerList) {
 		// TODO implement this
+	}
+	
+	public void discardAllListeners(INotifyEvent event) {
+		int externalMask = INotifyService.exportMask(event.getChangeMask());
+		event.setChangeMask(externalMask);
+		
+		for (FileNotifyListener l : listenerList) {
+			l.discarded(event);
+		}
+		
+		listenerList.clear();
+	}
+	
+	public void notifyAllListener(INotifyEvent evt) {
+		int externalMask = INotifyService.exportMask(evt.getChangeMask());
+		evt.setChangeMask(externalMask);
+		synchronized (listenerList) {
+			for (FileNotifyListener l : listenerList) {
+				int listenerMask = l.getMask() | FileNotifyConstants.UNMOUNTED;
+				// only inform listeners that have registered for this type of event
+				// unmounted is a special type that can occur anytime.
+				// Note: the informal parts will not trigger the listener, 
+				// because they are not definied inside the listenerMask.
+				if ((listenerMask & externalMask) != 0x00000000) {
+					l.notificationRecieved(evt);
+				}
+			}
+		}
 	}
 
 	/**

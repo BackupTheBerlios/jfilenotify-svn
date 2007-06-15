@@ -1,6 +1,8 @@
 package de.jtdev.jfilenotify.inotify;
 
-public class INotifyEvent {
+import de.jtdev.jfilenotify.FileNotifyEvent;
+
+public class INotifyEvent implements FileNotifyEvent {
 	
 	// Supported events suitable for MASK parameter of INOTIFY_ADD_WATCH.
 	public static final int IN_ACCESS        = 0x00000001; // File was accessed.
@@ -46,12 +48,38 @@ public class INotifyEvent {
 		return cookie;
 	}
 	
-	public int getMask() {
+	public int getChangeMask() {
 		return mask;
 	}
 	
-	public String getFileName() {
+	public void setChangeMask(int newMask) {
+		this.mask = newMask;
+	}
+	
+	public String getChangedFileName() {
 		return fileName;
 	}
 
+	private static final int NOT_IGNORE_MASK = 0x0007fff;
+	
+	/**
+	 * Returns true if this event is an ignore event that forces the service to 
+	 * automatically remove the listener. False in any other case.
+	 *
+	 * TODO: This method uses a hack to differ between the maybe faulty event 
+	 * caused by IN_MOVED_TO. (this bug appeared under ubuntu 7.04)
+	 *
+	 * @return true if event is ignore event
+	 */
+	protected boolean isIgnoreEvent() {
+		if ((mask & IN_IGNORED) == 0x00000000)
+			return false; // mask not set
+		if ((mask & NOT_IGNORE_MASK) != 0x00000000)
+			return false; // other options set (secure hack)
+		return true;
+	}
+	
+	public String toString() {
+		return "INotifyEvent: wd="+watchDescriptor+" cookie="+cookie+" mask="+Integer.toHexString(mask)+" filename="+fileName;
+	}
 }
