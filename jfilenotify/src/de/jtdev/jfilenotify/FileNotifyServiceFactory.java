@@ -1,5 +1,7 @@
 package de.jtdev.jfilenotify;
 
+import de.jtdev.jfilenotify.inotify.INotifyService;
+
 /**
  * This factory delivers a platform specific {@link FileNotifyService} through
  * its {@link #createNotificationService()} method.
@@ -32,7 +34,12 @@ public class FileNotifyServiceFactory {
 	 *         operating system is not supported.</p>
 	 */
 	public static FileNotifyService createNotificationService() throws FileNotifyException {
-		throw new FileNotifyException("Currently is no system supported");
+		String osName = System.getProperty("os.name");
+		if ("Linux".equals(osName)) {
+			// TODO: use Reflection API?
+			return new INotifyService();
+		}
+		throw new FileNotifyException("Sorry, your operating system is not supported.");
 	}
 	
 }
