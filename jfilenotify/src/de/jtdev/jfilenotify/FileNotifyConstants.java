@@ -24,6 +24,6 @@ public interface FileNotifyConstants {
 	public static final int UNMOUNTED            = 0x00004000;
 
 	public static final int ONLY_DIRECTORY       = 0x00010000;
-	public static final int DONT_FOLLOW          = 0x00020000;
+//	public static final int DONT_FOLLOW          = 0x00020000;
 
 }

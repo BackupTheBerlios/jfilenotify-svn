@@ -13,7 +13,7 @@ package de.jtdev.jfilenotify;
  *
  * @author Tobias Oelgarte
  */
-public interface FileNotifyEvent {
+public interface FileNotifyEvent extends FileNotifyConstants {
 
 	/**
 	 * Returns the mask of this event. The mask provides information about
