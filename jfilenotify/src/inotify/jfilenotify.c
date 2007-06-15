@@ -2,9 +2,16 @@
 #include <errno.h>
 #include "jfilenotify.h"
 
+#define DEBUG_ENABLED
+
 JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_createINotifyInstance
 (JNIEnv *env, jobject caller) {
 	int fd = inotify_init();
+
+#ifdef DEBUG_ENABLED
+	printf("createINotifyInstance: fd=%i\n", fd);
+#endif
+
 	if (fd < 0) return (jint) -errno;
 	return (jint) fd;
 }
@@ -12,6 +19,11 @@ JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_createIN
 JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_releaseINotifyInstance
 (JNIEnv *env, jobject caller, jint fd) {
 	int ret = close(fd);
+
+#ifdef DEBUG_ENABLED
+	printf("releaseINotifyInstance: fd=%i, result=%i", fd, ret);
+#endif
+
 	if (ret < 0) return (jint) -errno;
 	return (jint) ret;
 }
@@ -40,7 +52,7 @@ JNIEXPORT jint JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_removeWa
 
 char buf[BUF_LEN];
 
-JNIEXPORT jobjectArray JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEvents
+JNIEXPORT jobject JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_readEvents
 (JNIEnv *env, jobject caller, jint fd) {
 	int len, i = 0;
 	len = read (fd, buf, BUF_LEN);
@@ -48,11 +60,20 @@ JNIEXPORT jobjectArray JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_
 		if (errno = EINTR)
 			;// need to reissue system call
 		else
-			;// return null (error)
-	} else if (len == 0) {
+			return NULL; // return null (error)
+	}
+
+	if (len == 0) {
 		// BUF_LEN too small?
 	}
+
+	// creating List
+	jclass linkedListClass = (*env)->FindClass(env, "java/util/LinkedList");
+	jmethodID linkedListConstructor = (*env)->GetMethodID(env, linkedListClass, "<init>", "()V");
+	jobject linkedList = (*env)->NewObject(env, linkedListClass, linkedListConstructor);
 	
+	jmethodID addMethodID = (*env)->GetMethodID(env, linkedListClass, "add", "(L/java/lang/Object;)Z");
+
 	while (i < len) {
 		struct inotify_event *event;
 		event = (struct inotify_event *) &buf[i];
@@ -61,4 +82,8 @@ JNIEXPORT jobjectArray JNICALL Java_de_jtdev_jfilenotify_inotify_INotifyService_
 		}
 		i += EVENT_SIZE + event->len;
 	}
+
+	(*env)->DeleteLocalRef(env, linkedListClass);
+
+	return linkedList;
 }
