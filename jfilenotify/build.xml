@@ -36,7 +36,7 @@
 				<exec executable="gcc">
 						<arg value="-shared"/>
 						<arg value="-o"/>
-						<arg value="${dist.dir}/libfilenotify.so"/>
+						<arg value="${dist.dir}/libjfilenotify.so"/>
 						<arg value="${src.dir}/inotify/jfilenotify.o"/>
 				</exec>
 				<delete file="${src.dir}/inotify/jfilenotify.o"/>
