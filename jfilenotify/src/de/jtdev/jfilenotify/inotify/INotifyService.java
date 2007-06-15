@@ -285,7 +285,7 @@ public class INotifyService extends Thread implements FileNotifyService {
 	public void run() {
 		while (true) {
 			
-			while (listenerGroupSet.isEmpty()) {
+			while (listenerGroupSet.isEmpty() && !isDisposed) {
 				synchronized (threadLock) {
 					try { threadLock.wait(); } catch (InterruptedException ex) { }
 				}
